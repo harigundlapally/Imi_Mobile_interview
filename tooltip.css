@@ -1,0 +1,106 @@
+body{
+    margin: 0;
+    padding: 0;
+}
+.tooltips-wrapper{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    height: 767px;
+    margin: 0 auto;
+}
+
+.tooltip button{
+    cursor: pointer;
+    background-color: indianred;
+    color: #fff;
+    border: 1px solid indianred;
+    width: 250px;
+    height: 50px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin: 10px;
+}
+
+.tooltip span{
+    visibility: hidden;
+    position: absolute;
+    width: 100px;
+    height: auto;
+    background-color: #999999;
+    color: #ffffff;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 10px 15px;
+}
+
+.tooltip:hover span{
+    z-index: 1;
+    visibility: visible !important;
+}
+
+.tooltip:hover span:after{
+    width: 10px;
+    height: 10px;
+    background-color: #999999;
+    transform: rotate(45deg);
+    position: absolute;
+    content: '';
+}
+
+.tooltip button[data-position='bottom'] span{
+    bottom: -105%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip button[data-position='top'] span{
+    top: -105%;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip button[data-position='right'] span{
+    left: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tooltip button[data-position='left'] span{
+    right: 105%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tooltip button[data-position='bottom'] span:after{
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltip button[data-position='top'] span:after{
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltip button[data-position='right'] span:after{
+    top: 50%;
+    left: -5px;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.tooltip button[data-position='left'] span:after{
+    top: 50%;
+    right: -5px;
+    transform: translateY(-50%) rotate(45deg);
+}
+
+@media screen and (max-width: 576px) {
+    .tooltips-wrapper {
+        flex-direction: column;
+    }
+}
