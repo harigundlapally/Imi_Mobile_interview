@@ -45,19 +45,15 @@ var myLibrary = {
             }
 
         }
+    },
+    inViewport: function(element) {
+        // Get the elements position relative to the viewport
+        var bb = element.getBoundingClientRect();
+        // Check if the element is outside the viewport
+        // Then invert the returned value because you want to know the opposite
+        return !(bb.top > innerHeight || bb.bottom < 0);
     }
 };
-
-
-myLibrary.inViewport = function(element){
-    // Get the elements position relative to the viewport
-    var bb = element.getBoundingClientRect();
-    // Check if the element is outside the viewport
-    // Then invert the returned value because you want to know the opposite
-    return !(bb.top > innerHeight || bb.bottom < 0);
-    
-}
-
 
 // pageload event
 window.onload = function() {
