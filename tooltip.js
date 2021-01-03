@@ -1,5 +1,13 @@
 // mylibrary.js
 let myElement;
+
+const POSITIONS = {
+    TOP: 'top',
+    LEFT: 'left',
+    BOTTOM: 'bottom',
+    RIGTH: 'right'
+};
+
 var myLibrary = {
     setTooltip: function(text, hoverText) {
         let wrapper = document.getElementsByClassName('tooltips-wrapper')[0];
@@ -15,34 +23,45 @@ var myLibrary = {
             hoverElem.style.visibility = 'hidden';
             tooltipElem.appendChild(textElem).appendChild(hoverElem);
     }, 
+    getTooltipPosition: function(coords) {
+        let windowHeight = window.innerHeight;
+        let tooltipPos = POSITIONS.TOP;
+        let elemTop = coords.top;
+        let elemLeft = coords.left;
+        let tooltipPosContainer = {
+            width: 300,
+            height: 150
+        };
+        // debugger;
+        if(elemTop - tooltipPosContainer.height > 30) {
+            tooltipPos = POSITIONS.TOP;
+        } else if((elemTop + coords.height + tooltipPosContainer.height) < windowHeight) {
+            tooltipPos = POSITIONS.BOTTOM;
+        };
+        return tooltipPos;
+    },
+    show : function(tooltip, pos) {
+        let offsetTop = window.pageYOffset;
+        let offsetLeft = window.pageXOffset;
+        let spanCoords = tooltip.querySelector('span').getBoundingClientRect();
+        tooltip.setAttribute('data-position', pos);
+        // tooltip.querySelector('span').style.bottom = (targetElemCoords.height + 10) + 'px';
+        // tooltip.querySelector('span').style.top = 'auto';
+        switch (pos) {
+            case 'top':
+                
+                break;
+        
+            default:
+                break;
+        }
+    },
     setTooltipPosition: function() {
         let tooltipBtns = document.querySelectorAll('.tooltip-btn');
         for(var i = 0; i < tooltipBtns.length; i++) {
-            let buttonCoords = tooltipBtns[i].getBoundingClientRect();
-            let spanCoords = tooltipBtns[i].querySelector('span').getBoundingClientRect();
-            let windowHeight = window.innerHeight;
-
-            if((windowHeight) > spanCoords.height) {
-                if(buttonCoords.top > spanCoords.height) {
-                    tooltipBtns[i].setAttribute('data-position', 'top');
-                    tooltipBtns[i].querySelector('span').style.bottom = (buttonCoords.height + 10) + 'px';
-                    tooltipBtns[i].querySelector('span').style.top = 'auto';
-                } else {
-                    tooltipBtns[i].setAttribute('data-position', 'bottom');
-                    tooltipBtns[i].querySelector('span').style.top = (buttonCoords.height + 10) + 'px';
-                    tooltipBtns[i].querySelector('span').style.bottom = 'auto';
-                }
-            } else {
-                if(buttonCoords.left > spanCoords.width) {
-                    tooltipBtns[i].setAttribute('data-position', 'left');
-                    tooltipBtns[i].querySelector('span').style.right = (buttonCoords.width + 10) + 'px';
-                    tooltipBtns[i].querySelector('span').style.left = 'auto';
-                } else {
-                    tooltipBtns[i].setAttribute('data-position', 'right');
-                    tooltipBtns[i].querySelector('span').style.left = (buttonCoords.width + 10) + 'px';
-                    tooltipBtns[i].querySelector('span').style.right = 'auto';
-                }
-            }
+            let targetElemCoords = tooltipBtns[i].getBoundingClientRect();
+            let tooltipPos = this.getTooltipPosition(targetElemCoords);
+            this.show(tooltipBtns[i], tooltipPos);
 
         }
     },
