@@ -1,103 +1,131 @@
-// mylibrary.js
-let myElement;
 
 const POSITIONS = {
     TOP: 'top',
     LEFT: 'left',
     BOTTOM: 'bottom',
-    RIGTH: 'right'
+    RIGHT: 'right',
+    AUTOLEFT: 'auto-left',
+    AUTORIGHT: 'auto-right'
 };
 
 var myLibrary = {
-    setTooltip: function(text, hoverText) {
-        let wrapper = document.getElementsByClassName('tooltips-wrapper')[0];
-        let tooltipElem = document.createElement("div")
+    onload: function() {
+        let tooltipElements = document.querySelectorAll('[data-toggle="tooltip"]');
+        tooltipElements.forEach((elem) => {
+            elem.addEventListener('mouseover', () => {
+                let title = elem.getAttribute('title');
+                this.createTooltip(title,elem.getBoundingClientRect());
+            });
+            elem.addEventListener('mouseout', () => {
+                this.removeTooltip();
+            });
+        });
+    },
+    createTooltip: function(title,elemCoords) {
+        let wrapper = document.getElementsByTagName("body")[0];
+        let tooltipElem = document.createElement("div");
             tooltipElem.classList.add('tooltip');
+            tooltipElem.innerHTML = '<div class="arrow"></div><div class="tooltip-inner">'+title+'</div>';
             wrapper.appendChild(tooltipElem);
-        let textElem = document.createElement("button");
-            textElem.classList.add('button', 'tooltip-btn');
-            textElem.setAttribute('type', 'button');
-            textElem.innerHTML = text;
-        let hoverElem = document.createElement("span");
-            hoverElem.innerHTML = hoverText;
-            hoverElem.style.visibility = 'hidden';
-            tooltipElem.appendChild(textElem).appendChild(hoverElem);
-    }, 
-    getTooltipPosition: function(coords) {
+        let tooltipElemCoordinates = {
+            width: tooltipElem.clientWidth,
+            height: tooltipElem.clientHeight
+        }
+        let tooltipPlacement = this.getTooltipPlacement(elemCoords, tooltipElemCoordinates);
+        this.applyTooltipStyles(tooltipPlacement, tooltipElemCoordinates, elemCoords, tooltipElem);
+    },
+    removeTooltip: function() {
+        const elem = document.querySelector('.tooltip');
+        elem.remove();
+    },
+    getTooltipPlacement: function(coords, tooltipElemCoords) {
+        let windowWidth = window.innerWidth;
         let windowHeight = window.innerHeight;
-        let tooltipPos = POSITIONS.TOP;
+        let tooltipPos = null;
         let elemTop = coords.top;
         let elemLeft = coords.left;
-        let tooltipPosContainer = {
-            width: 300,
-            height: 150
-        };
-        // debugger;
-        if(elemTop - tooltipPosContainer.height > 30) {
+        let elemRight = coords.right;
+        if((tooltipElemCoords.width + 10 < (windowWidth - elemRight)) && (elemTop - (tooltipElemCoords.height/2) + (coords.height/2) > 10) && (window.innerHeight > elemTop+(coords.height/2)+(tooltipElemCoords.height/2))) {
+            tooltipPos = POSITIONS.RIGHT;
+        } else if(tooltipElemCoords.width + 10 < elemLeft && (elemTop - (tooltipElemCoords.height/2) + (coords.height/2) > 10) && (window.innerHeight > elemTop+(coords.height/2)+(tooltipElemCoords.height/2))) {
+            tooltipPos = POSITIONS.LEFT;
+        } else if(elemTop - tooltipElemCoords.height > 30 && (coords.left + (coords.width/2) - (tooltipElemCoords.width /2) > 10) && (coords.right - (coords.width/2)+ (tooltipElemCoords.width/2) < windowWidth)) {
             tooltipPos = POSITIONS.TOP;
-        } else if((elemTop + coords.height + tooltipPosContainer.height) < windowHeight) {
+        } else if((elemTop + coords.height + tooltipElemCoords.height) < windowHeight && (coords.left + (coords.width/2) - (tooltipElemCoords.width /2) > 10) && (coords.right - (coords.width/2)+ (tooltipElemCoords.width/2) < windowWidth)) {
             tooltipPos = POSITIONS.BOTTOM;
-        };
+        } else if((tooltipElemCoords.width + 10 < (windowWidth - elemRight))) {
+            tooltipPos = POSITIONS.AUTORIGHT;
+        } else if(tooltipElemCoords.width + 10 < elemLeft) {
+            tooltipPos = POSITIONS.AUTOLEFT;
+        }
         return tooltipPos;
     },
-    show : function(tooltip, pos) {
+    applyTooltipStyles: function(tooltipPlacement, tooltipElemCoordinates, elemCoords, tooltipElem) {
+        let windowHeight = window.innerHeight;
         let offsetTop = window.pageYOffset;
         let offsetLeft = window.pageXOffset;
-        let spanCoords = tooltip.querySelector('span').getBoundingClientRect();
-        tooltip.setAttribute('data-position', pos);
-        // tooltip.querySelector('span').style.bottom = (targetElemCoords.height + 10) + 'px';
-        // tooltip.querySelector('span').style.top = 'auto';
-        switch (pos) {
-            case 'top':
-                
+        let left= 0,top =0;
+        switch (tooltipPlacement) {
+            case POSITIONS.TOP: 
+                top = offsetTop + elemCoords.top - tooltipElemCoordinates.height - 10;
+                left = offsetLeft + elemCoords.left + (elemCoords.width/2) - (tooltipElemCoordinates.width/2);
+                tooltipElem.classList.add(POSITIONS.TOP);
                 break;
+
+            case POSITIONS.BOTTOM: 
+                top = offsetTop + elemCoords.top + elemCoords.height + 10;
+                left = offsetLeft + elemCoords.left + (elemCoords.width/2) - (tooltipElemCoordinates.width/2);
+                tooltipElem.classList.add(POSITIONS.BOTTOM);
+                break;
+
+            case POSITIONS.LEFT: 
+                top = offsetTop + elemCoords.top + (elemCoords.height/2) - (tooltipElemCoordinates.height/2);
+                left = offsetLeft + elemCoords.left - tooltipElemCoordinates.width - 10;
+                tooltipElem.classList.add(POSITIONS.LEFT);
+                break;
+
+            case POSITIONS.RIGHT: 
+                top = offsetTop + elemCoords.top + (elemCoords.height/2) - (tooltipElemCoordinates.height/2);
+                left = offsetLeft + elemCoords.right + 10;
+                tooltipElem.classList.add(POSITIONS.RIGHT);
+                break;
+
+            case POSITIONS.AUTORIGHT: {
+                let adjustTop = 0;
+                if( elemCoords.top - (tooltipElemCoordinates.height/2) + (elemCoords.height/2)  < 0 ) {
+                    adjustTop = (elemCoords.top - (tooltipElemCoordinates.height/2) + (elemCoords.height/2) )*-1 + 5;
+                } else if( elemCoords.top + (elemCoords.height/2) - windowHeight + (tooltipElemCoordinates.height/2) >  0) {
+                    adjustTop = (elemCoords.top + (elemCoords.height/2) - windowHeight + (tooltipElemCoordinates.height/2))*-1 - 5;
+                }
+                top = offsetTop + elemCoords.top + (elemCoords.height/2) - (tooltipElemCoordinates.height/2) + adjustTop;
+                left = offsetLeft + elemCoords.right + 10;
+                tooltipElem.classList.add(POSITIONS.RIGHT);
+                break;
+            }
+
+            case POSITIONS.AUTOLEFT: {
+                let adjustTop = 0;
+                if( elemCoords.top - (tooltipElemCoordinates.height/2) + (elemCoords.height/2)  < 0 ) {
+                    adjustTop = (elemCoords.top - (tooltipElemCoordinates.height/2) + (elemCoords.height/2) )*-1 + 5;
+                } else if( elemCoords.top + (elemCoords.height/2) - windowHeight + (tooltipElemCoordinates.height/2) >  0) {
+                    adjustTop = (elemCoords.top + (elemCoords.height/2) - windowHeight + (tooltipElemCoordinates.height/2))*-1 - 5;
+                }
+                top = offsetTop + elemCoords.top + (elemCoords.height/2) - (tooltipElemCoordinates.height/2)+ adjustTop;
+                left = offsetLeft + elemCoords.left - tooltipElemCoordinates.width - 10;
+                tooltipElem.classList.add(POSITIONS.LEFT);
+                break;
+            }
         
             default:
                 break;
         }
-    },
-    setTooltipPosition: function() {
-        let tooltipBtns = document.querySelectorAll('.tooltip-btn');
-        for(var i = 0; i < tooltipBtns.length; i++) {
-            let targetElemCoords = tooltipBtns[i].getBoundingClientRect();
-            let tooltipPos = this.getTooltipPosition(targetElemCoords);
-            this.show(tooltipBtns[i], tooltipPos);
 
-        }
-    },
-    inViewport: function(element) {
-        // Get the elements position relative to the viewport
-        var bb = element.getBoundingClientRect();
-        // Check if the element is outside the viewport
-        // Then invert the returned value because you want to know the opposite
-        return !(bb.top > innerHeight || bb.bottom < 0);
+        tooltipElem.style.top = top+'px';
+        tooltipElem.style.left = left+'px';
     }
-};
+}
 
-// pageload event
+
 window.onload = function() {
-    myLibrary.setTooltip('Tooltip 1', 'Tooltip 1 text goes here...');
-    myLibrary.setTooltip('Tooltip 2', 'Tooltip 2 text goes here...Tooltip 2 text goes here...Tooltip 2 text goes here...Tooltip 2 text goes here...Tooltip 2 text goes here...Tooltip 2 text goes here...');
-    myLibrary.setTooltip('Tooltip 3', 'Tooltip 3 text goes here...');
-    myLibrary.setTooltip('Tooltip 4', 'Tooltip 4 text goes here...');
-    // check the elements in viewport
-    myElement = document.querySelector( '.tooltip-btn' );
-    if( myLibrary.inViewport(myElement) ){
-        myLibrary.setTooltipPosition();
-    };
-    
-};
-
-// call resize to set tooltip position
-window.onresize = function() {
-    if( myLibrary.inViewport(myElement) ){
-        myLibrary.setTooltipPosition();
-    };
-};
-
-// call onscroll to set tooltip position
-window.onscroll = function() {
-    if( myLibrary.inViewport(myElement) ){
-        myLibrary.setTooltipPosition();
-    };
-};
+    myLibrary.onload();
+}
